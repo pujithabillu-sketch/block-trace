@@ -16,6 +16,11 @@ algorand-python-testing = "^1"
 [tool.poetry.group.dev.dependencies]
 algokit-client-generator = "^2.1.0"
 puyapy = "*"
+pytest = "*"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
 
 [build-system]
 requires = ["poetry-core"]

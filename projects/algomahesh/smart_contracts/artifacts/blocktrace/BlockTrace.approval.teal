@@ -1,0 +1,2277 @@
+#pragma version 11
+#pragma typetrack false
+
+// algopy.arc4.ARC4Contract.approval_program() -> uint64:
+main:
+    intcblock 2 1 0 32
+    bytecblock 0x00 "products" "admin" 0x0078 0x80 0x151f7c75 "participants" "history_counts" "history_events"
+    txn ApplicationID
+    bnz main_after_if_else@2
+    // smart_contracts/blocktrace/contract.py:74
+    // self.admin = Account()
+    bytec_2 // "admin"
+    global ZeroAddress
+    app_global_put
+
+main_after_if_else@2:
+    // smart_contracts/blocktrace/contract.py:72
+    // class BlockTrace(ARC4Contract):
+    txn OnCompletion
+    !
+    assert
+    pushbytes 0x752c3ac0 // method "create_application()void"
+    txna ApplicationArgs 0
+    match create_application
+
+main_switch_case_next@5:
+    // smart_contracts/blocktrace/contract.py:72
+    // class BlockTrace(ARC4Contract):
+    txn ApplicationID
+    assert
+    pushbytess 0xf605e1db 0xbda8b69b 0x56681463 0x2b142e43 0xe875a968 0x93b85fc1 0x40c1c42f 0x5630bd86 0x321ea3c1 0x2df1aee4 0x92e129be 0xea08d14b 0x52f3653f // method "authorize_participant(address,uint8)void", method "revoke_participant(address)void", method "get_participant_role(address)uint8", method "register_product(string,string,string)void", method "transfer_product(string,address)void", method "receive_product(string)void", method "update_product_status(string,uint8)void", method "report_counterfeit(string,string)void", method "recall_product(string)void", method "verify_product(string)(string,address,address,address,string,string,uint64,uint64,uint8,bool,bool,bool)", method "get_product_status(string)uint8", method "get_history_count(string)uint64", method "get_history_event(string,uint64)(string,address,address,uint64,string,uint8)"
+    txna ApplicationArgs 0
+    match authorize_participant revoke_participant get_participant_role register_product transfer_product receive_product update_product_status report_counterfeit recall_product verify_product get_product_status get_history_count get_history_event
+    err
+
+
+// smart_contracts.blocktrace.contract.BlockTrace.create_application[routing]() -> void:
+create_application:
+    // smart_contracts/blocktrace/contract.py:83
+    // self.admin = Txn.sender
+    bytec_2 // "admin"
+    txn Sender
+    app_global_put
+    // smart_contracts/blocktrace/contract.py:84
+    // self.participants[Txn.sender] = ParticipantInfo(
+    bytec 6 // "participants"
+    txn Sender
+    concat
+    // smart_contracts/blocktrace/contract.py:84-87
+    // self.participants[Txn.sender] = ParticipantInfo(
+    //     role=ARC4UInt8(ROLE_ADMIN),
+    //     is_authorized=ARC4Bool(True),
+    // )
+    pushbytes 0x0580
+    box_put
+    // smart_contracts/blocktrace/contract.py:80
+    // @abimethod(create="allow")
+    intc_1 // 1
+    return
+
+
+// smart_contracts.blocktrace.contract.BlockTrace.authorize_participant[routing]() -> void:
+authorize_participant:
+    // smart_contracts/blocktrace/contract.py:89
+    // @abimethod()
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    txna ApplicationArgs 2
+    dupn 2
+    len
+    intc_1 // 1
+    ==
+    assert // invalid number of bytes for arc4.uint8
+    // smart_contracts/blocktrace/contract.py:92
+    // assert Txn.sender == self.admin, "Only admin can authorize participants"
+    txn Sender
+    intc_2 // 0
+    bytec_2 // "admin"
+    app_global_get_ex
+    assert // check self.admin exists
+    ==
+    assert // Only admin can authorize participants
+    // smart_contracts/blocktrace/contract.py:94
+    // role.native >= ROLE_MANUFACTURER and role.native <= ROLE_ADMIN
+    btoi
+    dup
+    cover 3
+    bz authorize_participant_bool_false@4
+    dig 2
+    pushint 5
+    <=
+    bz authorize_participant_bool_false@4
+    intc_1 // 1
+
+authorize_participant_bool_merge@5:
+    // smart_contracts/blocktrace/contract.py:93-95
+    // assert (
+    //     role.native >= ROLE_MANUFACTURER and role.native <= ROLE_ADMIN
+    // ), "Invalid participant role"
+    assert // Invalid participant role
+    // smart_contracts/blocktrace/contract.py:98
+    // is_authorized=ARC4Bool(True),
+    bytec 4 // 0x80
+    // smart_contracts/blocktrace/contract.py:96-99
+    // self.participants[account] = ParticipantInfo(
+    //     role=role,
+    //     is_authorized=ARC4Bool(True),
+    // )
+    concat
+    // smart_contracts/blocktrace/contract.py:96
+    // self.participants[account] = ParticipantInfo(
+    bytec 6 // "participants"
+    uncover 2
+    concat
+    // smart_contracts/blocktrace/contract.py:96-99
+    // self.participants[account] = ParticipantInfo(
+    //     role=role,
+    //     is_authorized=ARC4Bool(True),
+    // )
+    swap
+    box_put
+    // smart_contracts/blocktrace/contract.py:89
+    // @abimethod()
+    intc_1 // 1
+    return
+
+authorize_participant_bool_false@4:
+    intc_2 // 0
+    b authorize_participant_bool_merge@5
+
+
+// smart_contracts.blocktrace.contract.BlockTrace.revoke_participant[routing]() -> void:
+revoke_participant:
+    // smart_contracts/blocktrace/contract.py:101
+    // @abimethod()
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    // smart_contracts/blocktrace/contract.py:104
+    // assert Txn.sender == self.admin, "Only admin can revoke participants"
+    txn Sender
+    intc_2 // 0
+    bytec_2 // "admin"
+    app_global_get_ex
+    assert // check self.admin exists
+    ==
+    assert // Only admin can revoke participants
+    // smart_contracts/blocktrace/contract.py:105
+    // assert account in self.participants, "Participant not registered"
+    bytec 6 // "participants"
+    swap
+    concat
+    dup
+    box_len
+    bury 1
+    assert // Participant not registered
+    // smart_contracts/blocktrace/contract.py:106-109
+    // self.participants[account] = ParticipantInfo(
+    //     role=ARC4UInt8(ROLE_NONE),
+    //     is_authorized=ARC4Bool(False),
+    // )
+    pushbytes 0x0000
+    box_put
+    // smart_contracts/blocktrace/contract.py:101
+    // @abimethod()
+    intc_1 // 1
+    return
+
+
+// smart_contracts.blocktrace.contract.BlockTrace.get_participant_role[routing]() -> void:
+get_participant_role:
+    // smart_contracts/blocktrace/contract.py:111
+    // @abimethod()
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    callsub smart_contracts.blocktrace.contract.BlockTrace.get_participant_role
+    bytec 5 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_1 // 1
+    return
+
+
+// smart_contracts.blocktrace.contract.BlockTrace.register_product[routing]() -> void:
+register_product:
+    // smart_contracts/blocktrace/contract.py:120
+    // @abimethod()
+    txna ApplicationArgs 1
+    dupn 2
+    intc_2 // 0
+    extract_uint16 // on error: invalid array length header
+    intc_0 // 2
+    +
+    dig 1
+    len
+    dup
+    cover 3
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    extract 2 0
+    txna ApplicationArgs 2
+    dup
+    cover 3
+    dup
+    intc_2 // 0
+    extract_uint16 // on error: invalid array length header
+    intc_0 // 2
+    +
+    dig 1
+    len
+    dup
+    cover 4
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    extract 2 0
+    txna ApplicationArgs 3
+    dup
+    cover 4
+    dup
+    intc_2 // 0
+    extract_uint16 // on error: invalid array length header
+    intc_0 // 2
+    +
+    dig 1
+    len
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    extract 2 0
+    // smart_contracts/blocktrace/contract.py:125
+    // role = self.get_participant_role(Txn.sender).native
+    txn Sender
+    callsub smart_contracts.blocktrace.contract.BlockTrace.get_participant_role
+    btoi
+    // smart_contracts/blocktrace/contract.py:127
+    // role == ROLE_MANUFACTURER or Txn.sender == self.admin
+    intc_1 // 1
+    ==
+    bnz register_product_bool_true@3
+    txn Sender
+    intc_2 // 0
+    bytec_2 // "admin"
+    app_global_get_ex
+    assert // check self.admin exists
+    ==
+    bz register_product_bool_false@4
+
+register_product_bool_true@3:
+    intc_1 // 1
+
+register_product_bool_merge@5:
+    // smart_contracts/blocktrace/contract.py:126-128
+    // assert (
+    //     role == ROLE_MANUFACTURER or Txn.sender == self.admin
+    // ), "Caller is not an authorized manufacturer"
+    assert // Caller is not an authorized manufacturer
+    // smart_contracts/blocktrace/contract.py:130
+    // assert bool(product_id), "Product ID cannot be empty"
+    uncover 2
+    dup
+    len
+    assert // Product ID cannot be empty
+    // smart_contracts/blocktrace/contract.py:131
+    // assert bool(batch_id), "Batch ID cannot be empty"
+    uncover 2
+    len
+    assert // Batch ID cannot be empty
+    // smart_contracts/blocktrace/contract.py:132
+    // assert bool(metadata_hash), "Metadata hash cannot be empty"
+    swap
+    len
+    assert // Metadata hash cannot be empty
+    // smart_contracts/blocktrace/contract.py:133
+    // assert product_id not in self.products, "Product ID already registered"
+    bytec_1 // "products"
+    dig 1
+    concat
+    dup
+    box_len
+    bury 1
+    !
+    assert // Product ID already registered
+    // smart_contracts/blocktrace/contract.py:135
+    // now = Global.latest_timestamp
+    global LatestTimestamp
+    // smart_contracts/blocktrace/contract.py:136
+    // sender_addr = ARC4Address(Txn.sender)
+    txn Sender
+    // smart_contracts/blocktrace/contract.py:137
+    // zero_addr = ARC4Address(Account())
+    global ZeroAddress
+    // smart_contracts/blocktrace/contract.py:146
+    // creation_timestamp=ARC4UInt64(now),
+    dig 2
+    itob
+    // smart_contracts/blocktrace/contract.py:139-152
+    // record = ProductRecord(
+    //     product_id=ARC4String(product_id),
+    //     manufacturer=sender_addr,
+    //     current_holder=sender_addr,
+    //     pending_recipient=zero_addr,
+    //     batch_id=ARC4String(batch_id),
+    //     metadata_hash=ARC4String(metadata_hash),
+    //     creation_timestamp=ARC4UInt64(now),
+    //     last_update_timestamp=ARC4UInt64(now),
+    //     current_status=ARC4UInt8(STATUS_REGISTERED),
+    //     product_exists=ARC4Bool(True),
+    //     recalled=ARC4Bool(False),
+    //     counterfeit_reported=ARC4Bool(False),
+    // )
+    pushint 120
+    uncover 9
+    +
+    bytec_3 // 0x0078
+    dig 4
+    concat
+    dig 4
+    concat
+    uncover 3
+    concat
+    dig 1
+    itob
+    extract 6 2
+    concat
+    swap
+    uncover 7
+    +
+    itob
+    extract 6 2
+    concat
+    dig 1
+    concat
+    swap
+    concat
+    pushbytes 0x0080
+    concat
+    uncover 7
+    concat
+    uncover 6
+    concat
+    uncover 5
+    concat
+    // smart_contracts/blocktrace/contract.py:153
+    // self.products[product_id] = record.copy()
+    dig 3
+    box_del
+    pop
+    uncover 3
+    swap
+    box_put
+    // smart_contracts/blocktrace/contract.py:155-162
+    // self._record_history(
+    //     product_id=product_id,
+    //     previous_holder=sender_addr,
+    //     new_holder=sender_addr,
+    //     timestamp=now,
+    //     event_type=String("PRODUCT_REGISTERED"),
+    //     status=ARC4UInt8(STATUS_REGISTERED),
+    // )
+    uncover 2
+    dig 1
+    uncover 2
+    uncover 3
+    // smart_contracts/blocktrace/contract.py:160
+    // event_type=String("PRODUCT_REGISTERED"),
+    pushbytes "PRODUCT_REGISTERED"
+    // smart_contracts/blocktrace/contract.py:148
+    // current_status=ARC4UInt8(STATUS_REGISTERED),
+    bytec_0 // 0x00
+    // smart_contracts/blocktrace/contract.py:155-162
+    // self._record_history(
+    //     product_id=product_id,
+    //     previous_holder=sender_addr,
+    //     new_holder=sender_addr,
+    //     timestamp=now,
+    //     event_type=String("PRODUCT_REGISTERED"),
+    //     status=ARC4UInt8(STATUS_REGISTERED),
+    // )
+    callsub _record_history
+    // smart_contracts/blocktrace/contract.py:120
+    // @abimethod()
+    intc_1 // 1
+    return
+
+register_product_bool_false@4:
+    intc_2 // 0
+    b register_product_bool_merge@5
+
+
+// smart_contracts.blocktrace.contract.BlockTrace.transfer_product[routing]() -> void:
+transfer_product:
+    // smart_contracts/blocktrace/contract.py:164
+    // @abimethod()
+    txna ApplicationArgs 1
+    dup
+    intc_2 // 0
+    extract_uint16 // on error: invalid array length header
+    intc_0 // 2
+    +
+    dig 1
+    len
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    extract 2 0
+    txna ApplicationArgs 2
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    // smart_contracts/blocktrace/contract.py:167
+    // assert product_id in self.products, "Product does not exist"
+    bytec_1 // "products"
+    dig 2
+    concat
+    dup
+    box_len
+    bury 1
+    assert // Product does not exist
+    // smart_contracts/blocktrace/contract.py:170
+    // assert not record.recalled.native, "Cannot transfer recalled product"
+    dup
+    pushint 119
+    intc_1 // 1
+    box_extract // on error: index out of bounds
+    intc_1 // 1
+    getbit
+    bytec_0 // 0x00
+    intc_2 // 0
+    uncover 2
+    setbit
+    intc_2 // 0
+    getbit
+    dup
+    !
+    assert // Cannot transfer recalled product
+    // smart_contracts/blocktrace/contract.py:171
+    // assert record.current_status.native != STATUS_SOLD, "Cannot transfer sold product"
+    dig 1
+    pushint 118
+    intc_1 // 1
+    box_extract // on error: index out of bounds
+    btoi
+    dup
+    pushint 6
+    !=
+    assert // Cannot transfer sold product
+    // smart_contracts/blocktrace/contract.py:173
+    // record.current_status.native != STATUS_COUNTERFEIT_REPORTED
+    pushint 8
+    !=
+    // smart_contracts/blocktrace/contract.py:172-174
+    // assert (
+    //     record.current_status.native != STATUS_COUNTERFEIT_REPORTED
+    // ), "Cannot transfer counterfeit-reported product"
+    assert // Cannot transfer counterfeit-reported product
+    // smart_contracts/blocktrace/contract.py:176
+    // Txn.sender == record.current_holder.native
+    txn Sender
+    dig 2
+    pushint 34
+    intc_3 // 32
+    box_extract // on error: index out of bounds
+    swap
+    dig 1
+    ==
+    // smart_contracts/blocktrace/contract.py:175-177
+    // assert (
+    //     Txn.sender == record.current_holder.native
+    // ), "Only current holder can initiate transfer"
+    assert // Only current holder can initiate transfer
+    // smart_contracts/blocktrace/contract.py:179
+    // receiver_role = self.get_participant_role(receiver).native
+    dig 3
+    callsub smart_contracts.blocktrace.contract.BlockTrace.get_participant_role
+    btoi
+    // smart_contracts/blocktrace/contract.py:180
+    // assert receiver_role != ROLE_NONE, "Receiver is not an authorized participant"
+    assert // Receiver is not an authorized participant
+    // smart_contracts/blocktrace/contract.py:181
+    // assert receiver != Txn.sender, "Cannot transfer product to yourself"
+    dig 3
+    txn Sender
+    !=
+    assert // Cannot transfer product to yourself
+    // smart_contracts/blocktrace/contract.py:183
+    // now = Global.latest_timestamp
+    global LatestTimestamp
+    // smart_contracts/blocktrace/contract.py:185
+    // product_id=record.product_id,
+    dig 3
+    pushint 120
+    intc_0 // 2
+    box_extract
+    btoi
+    intc_0 // 2
+    +
+    dig 4
+    pushint 120
+    uncover 2
+    box_extract
+    // smart_contracts/blocktrace/contract.py:186
+    // manufacturer=record.manufacturer,
+    dig 4
+    intc_0 // 2
+    intc_3 // 32
+    box_extract // on error: index out of bounds
+    // smart_contracts/blocktrace/contract.py:189
+    // batch_id=record.batch_id,
+    dig 5
+    pushint 98
+    intc_0 // 2
+    box_extract
+    btoi
+    dig 6
+    dig 1
+    intc_0 // 2
+    box_extract
+    btoi
+    intc_0 // 2
+    +
+    dig 7
+    cover 2
+    box_extract
+    // smart_contracts/blocktrace/contract.py:190
+    // metadata_hash=record.metadata_hash,
+    dig 6
+    pushint 100
+    intc_0 // 2
+    box_extract
+    btoi
+    dig 7
+    dig 1
+    intc_0 // 2
+    box_extract
+    btoi
+    intc_0 // 2
+    +
+    dig 8
+    cover 2
+    box_extract
+    // smart_contracts/blocktrace/contract.py:191
+    // creation_timestamp=record.creation_timestamp,
+    dig 7
+    pushints 102 8
+    box_extract // on error: index out of bounds
+    // smart_contracts/blocktrace/contract.py:192
+    // last_update_timestamp=ARC4UInt64(now),
+    dig 5
+    itob
+    // smart_contracts/blocktrace/contract.py:196
+    // counterfeit_reported=record.counterfeit_reported,
+    dig 9
+    pushint 119
+    intc_1 // 1
+    box_extract // on error: index out of bounds
+    intc_0 // 2
+    getbit
+    bytec_0 // 0x00
+    intc_2 // 0
+    uncover 2
+    setbit
+    // smart_contracts/blocktrace/contract.py:184-197
+    // updated_record = ProductRecord(
+    //     product_id=record.product_id,
+    //     manufacturer=record.manufacturer,
+    //     current_holder=record.current_holder,
+    //     pending_recipient=ARC4Address(receiver),
+    //     batch_id=record.batch_id,
+    //     metadata_hash=record.metadata_hash,
+    //     creation_timestamp=record.creation_timestamp,
+    //     last_update_timestamp=ARC4UInt64(now),
+    //     current_status=ARC4UInt8(STATUS_IN_TRANSIT),
+    //     product_exists=ARC4Bool(True),
+    //     recalled=record.recalled,
+    //     counterfeit_reported=record.counterfeit_reported,
+    // )
+    dig 6
+    len
+    pushint 120
+    +
+    bytec_3 // 0x0078
+    uncover 7
+    concat
+    dig 9
+    concat
+    dig 12
+    concat
+    dig 1
+    itob
+    extract 6 2
+    concat
+    dig 6
+    len
+    uncover 2
+    +
+    itob
+    extract 6 2
+    concat
+    uncover 3
+    concat
+    uncover 2
+    concat
+    // smart_contracts/blocktrace/contract.py:193
+    // current_status=ARC4UInt8(STATUS_IN_TRANSIT),
+    pushbytes 0x02
+    // smart_contracts/blocktrace/contract.py:184-197
+    // updated_record = ProductRecord(
+    //     product_id=record.product_id,
+    //     manufacturer=record.manufacturer,
+    //     current_holder=record.current_holder,
+    //     pending_recipient=ARC4Address(receiver),
+    //     batch_id=record.batch_id,
+    //     metadata_hash=record.metadata_hash,
+    //     creation_timestamp=record.creation_timestamp,
+    //     last_update_timestamp=ARC4UInt64(now),
+    //     current_status=ARC4UInt8(STATUS_IN_TRANSIT),
+    //     product_exists=ARC4Bool(True),
+    //     recalled=record.recalled,
+    //     counterfeit_reported=record.counterfeit_reported,
+    // )
+    concat
+    // smart_contracts/blocktrace/contract.py:194
+    // product_exists=ARC4Bool(True),
+    bytec 4 // 0x80
+    // smart_contracts/blocktrace/contract.py:184-197
+    // updated_record = ProductRecord(
+    //     product_id=record.product_id,
+    //     manufacturer=record.manufacturer,
+    //     current_holder=record.current_holder,
+    //     pending_recipient=ARC4Address(receiver),
+    //     batch_id=record.batch_id,
+    //     metadata_hash=record.metadata_hash,
+    //     creation_timestamp=record.creation_timestamp,
+    //     last_update_timestamp=ARC4UInt64(now),
+    //     current_status=ARC4UInt8(STATUS_IN_TRANSIT),
+    //     product_exists=ARC4Bool(True),
+    //     recalled=record.recalled,
+    //     counterfeit_reported=record.counterfeit_reported,
+    // )
+    intc_1 // 1
+    uncover 9
+    setbit
+    uncover 2
+    intc_2 // 0
+    getbit
+    intc_0 // 2
+    swap
+    setbit
+    concat
+    uncover 3
+    concat
+    uncover 2
+    concat
+    swap
+    concat
+    // smart_contracts/blocktrace/contract.py:198
+    // self.products[product_id] = updated_record.copy()
+    dig 3
+    box_del
+    pop
+    uncover 3
+    swap
+    box_put
+    // smart_contracts/blocktrace/contract.py:200-207
+    // self._record_history(
+    //     product_id=product_id,
+    //     previous_holder=record.current_holder,
+    //     new_holder=ARC4Address(receiver),
+    //     timestamp=now,
+    //     event_type=String("TRANSFER_INITIATED"),
+    //     status=ARC4UInt8(STATUS_IN_TRANSIT),
+    // )
+    uncover 3
+    uncover 2
+    uncover 3
+    uncover 3
+    // smart_contracts/blocktrace/contract.py:205
+    // event_type=String("TRANSFER_INITIATED"),
+    pushbytess "TRANSFER_INITIATED" 0x02
+    // smart_contracts/blocktrace/contract.py:200-207
+    // self._record_history(
+    //     product_id=product_id,
+    //     previous_holder=record.current_holder,
+    //     new_holder=ARC4Address(receiver),
+    //     timestamp=now,
+    //     event_type=String("TRANSFER_INITIATED"),
+    //     status=ARC4UInt8(STATUS_IN_TRANSIT),
+    // )
+    callsub _record_history
+    // smart_contracts/blocktrace/contract.py:164
+    // @abimethod()
+    intc_1 // 1
+    return
+
+
+// smart_contracts.blocktrace.contract.BlockTrace.receive_product[routing]() -> void:
+receive_product:
+    // smart_contracts/blocktrace/contract.py:209
+    // @abimethod()
+    txna ApplicationArgs 1
+    dup
+    intc_2 // 0
+    extract_uint16 // on error: invalid array length header
+    intc_0 // 2
+    +
+    dig 1
+    len
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    extract 2 0
+    dup
+    // smart_contracts/blocktrace/contract.py:212
+    // assert product_id in self.products, "Product does not exist"
+    bytec_1 // "products"
+    swap
+    concat
+    dupn 2
+    box_len
+    bury 1
+    assert // Product does not exist
+    // smart_contracts/blocktrace/contract.py:215
+    // assert not record.recalled.native, "Cannot receive recalled product"
+    dup
+    pushint 119
+    intc_1 // 1
+    box_extract // on error: index out of bounds
+    intc_1 // 1
+    getbit
+    bytec_0 // 0x00
+    intc_2 // 0
+    uncover 2
+    setbit
+    intc_2 // 0
+    getbit
+    dup
+    cover 3
+    !
+    assert // Cannot receive recalled product
+    // smart_contracts/blocktrace/contract.py:216
+    // assert record.current_status.native == STATUS_IN_TRANSIT, "Product is not in transit"
+    dup
+    pushint 118
+    intc_1 // 1
+    box_extract // on error: index out of bounds
+    btoi
+    intc_0 // 2
+    ==
+    assert // Product is not in transit
+    // smart_contracts/blocktrace/contract.py:217
+    // assert Txn.sender == record.pending_recipient.native, "Caller is not designated recipient"
+    txn Sender
+    swap
+    pushint 66
+    intc_3 // 32
+    box_extract // on error: index out of bounds
+    ==
+    assert // Caller is not designated recipient
+    // smart_contracts/blocktrace/contract.py:219
+    // role = self.get_participant_role(Txn.sender).native
+    txn Sender
+    callsub smart_contracts.blocktrace.contract.BlockTrace.get_participant_role
+    btoi
+    dupn 2
+    // smart_contracts/blocktrace/contract.py:220
+    // assert role != ROLE_NONE, "Recipient is not an authorized participant"
+    assert // Recipient is not an authorized participant
+    // smart_contracts/blocktrace/contract.py:222-223
+    // # Use UInt64 for runtime-variable status selection (PuyaPy requires algopy types)
+    // new_status = UInt64(STATUS_IN_TRANSIT)
+    intc_0 // 2
+    cover 5
+    // smart_contracts/blocktrace/contract.py:224
+    // if role == ROLE_MANUFACTURER:
+    intc_1 // 1
+    ==
+    bz receive_product_after_if_else@3
+    // smart_contracts/blocktrace/contract.py:225
+    // new_status = UInt64(STATUS_MANUFACTURED)
+    intc_1 // 1
+    bury 5
+
+receive_product_after_if_else@3:
+    // smart_contracts/blocktrace/contract.py:226
+    // if role == ROLE_DISTRIBUTOR:
+    dup
+    intc_0 // 2
+    ==
+    bz receive_product_after_if_else@5
+    // smart_contracts/blocktrace/contract.py:227
+    // new_status = UInt64(STATUS_AT_DISTRIBUTOR)
+    pushint 3
+    bury 5
+
+receive_product_after_if_else@5:
+    // smart_contracts/blocktrace/contract.py:228
+    // if role == ROLE_WAREHOUSE:
+    dup
+    pushint 3
+    ==
+    bz receive_product_after_if_else@7
+    // smart_contracts/blocktrace/contract.py:229
+    // new_status = UInt64(STATUS_AT_WAREHOUSE)
+    pushint 4
+    bury 5
+
+receive_product_after_if_else@7:
+    // smart_contracts/blocktrace/contract.py:230
+    // if role == ROLE_RETAILER:
+    pushint 4
+    ==
+    bz receive_product_after_if_else@9
+    // smart_contracts/blocktrace/contract.py:231
+    // new_status = UInt64(STATUS_AT_RETAILER)
+    pushint 5
+    bury 4
+
+receive_product_after_if_else@9:
+    // smart_contracts/blocktrace/contract.py:233
+    // now = Global.latest_timestamp
+    global LatestTimestamp
+    // smart_contracts/blocktrace/contract.py:234
+    // sender_addr = ARC4Address(Txn.sender)
+    txn Sender
+    // smart_contracts/blocktrace/contract.py:235
+    // zero_addr = ARC4Address(Account())
+    global ZeroAddress
+    // smart_contracts/blocktrace/contract.py:238
+    // product_id=record.product_id,
+    uncover 3
+    dup
+    pushint 120
+    intc_0 // 2
+    box_extract
+    btoi
+    intc_0 // 2
+    +
+    dig 1
+    pushint 120
+    uncover 2
+    box_extract
+    // smart_contracts/blocktrace/contract.py:239
+    // manufacturer=record.manufacturer,
+    dig 1
+    intc_0 // 2
+    intc_3 // 32
+    box_extract // on error: index out of bounds
+    // smart_contracts/blocktrace/contract.py:242
+    // batch_id=record.batch_id,
+    dig 2
+    pushint 98
+    intc_0 // 2
+    box_extract
+    btoi
+    dig 3
+    dig 1
+    intc_0 // 2
+    box_extract
+    btoi
+    intc_0 // 2
+    +
+    dig 4
+    cover 2
+    box_extract
+    // smart_contracts/blocktrace/contract.py:243
+    // metadata_hash=record.metadata_hash,
+    dig 3
+    pushint 100
+    intc_0 // 2
+    box_extract
+    btoi
+    dig 4
+    dig 1
+    intc_0 // 2
+    box_extract
+    btoi
+    intc_0 // 2
+    +
+    dig 5
+    cover 2
+    box_extract
+    // smart_contracts/blocktrace/contract.py:244
+    // creation_timestamp=record.creation_timestamp,
+    dig 4
+    pushints 102 8
+    box_extract // on error: index out of bounds
+    // smart_contracts/blocktrace/contract.py:245
+    // last_update_timestamp=ARC4UInt64(now),
+    dig 8
+    itob
+    // smart_contracts/blocktrace/contract.py:246
+    // current_status=ARC4UInt8(new_status),
+    dig 12
+    itob
+    dup
+    bitlen
+    pushint 8
+    <=
+    assert // overflow
+    extract 7 1
+    // smart_contracts/blocktrace/contract.py:249
+    // counterfeit_reported=record.counterfeit_reported,
+    dig 7
+    pushint 119
+    intc_1 // 1
+    box_extract // on error: index out of bounds
+    intc_0 // 2
+    getbit
+    bytec_0 // 0x00
+    intc_2 // 0
+    uncover 2
+    setbit
+    // smart_contracts/blocktrace/contract.py:237-250
+    // updated_record = ProductRecord(
+    //     product_id=record.product_id,
+    //     manufacturer=record.manufacturer,
+    //     current_holder=sender_addr,
+    //     pending_recipient=zero_addr,
+    //     batch_id=record.batch_id,
+    //     metadata_hash=record.metadata_hash,
+    //     creation_timestamp=record.creation_timestamp,
+    //     last_update_timestamp=ARC4UInt64(now),
+    //     current_status=ARC4UInt8(new_status),
+    //     product_exists=ARC4Bool(True),
+    //     recalled=record.recalled,
+    //     counterfeit_reported=record.counterfeit_reported,
+    // )
+    dig 7
+    len
+    pushint 120
+    +
+    bytec_3 // 0x0078
+    uncover 8
+    concat
+    dig 11
+    concat
+    uncover 10
+    concat
+    dig 1
+    itob
+    extract 6 2
+    concat
+    dig 7
+    len
+    uncover 2
+    +
+    itob
+    extract 6 2
+    concat
+    uncover 4
+    concat
+    uncover 3
+    concat
+    dig 2
+    concat
+    // smart_contracts/blocktrace/contract.py:247
+    // product_exists=ARC4Bool(True),
+    bytec 4 // 0x80
+    // smart_contracts/blocktrace/contract.py:237-250
+    // updated_record = ProductRecord(
+    //     product_id=record.product_id,
+    //     manufacturer=record.manufacturer,
+    //     current_holder=sender_addr,
+    //     pending_recipient=zero_addr,
+    //     batch_id=record.batch_id,
+    //     metadata_hash=record.metadata_hash,
+    //     creation_timestamp=record.creation_timestamp,
+    //     last_update_timestamp=ARC4UInt64(now),
+    //     current_status=ARC4UInt8(new_status),
+    //     product_exists=ARC4Bool(True),
+    //     recalled=record.recalled,
+    //     counterfeit_reported=record.counterfeit_reported,
+    // )
+    intc_1 // 1
+    uncover 11
+    setbit
+    uncover 2
+    intc_2 // 0
+    getbit
+    intc_0 // 2
+    swap
+    setbit
+    concat
+    uncover 4
+    concat
+    uncover 3
+    concat
+    uncover 2
+    concat
+    // smart_contracts/blocktrace/contract.py:251
+    // self.products[product_id] = updated_record.copy()
+    dig 2
+    box_del
+    pop
+    dig 2
+    swap
+    box_put
+    // smart_contracts/blocktrace/contract.py:255
+    // previous_holder=record.current_holder,
+    swap
+    pushint 34
+    intc_3 // 32
+    box_extract // on error: index out of bounds
+    // smart_contracts/blocktrace/contract.py:253-260
+    // self._record_history(
+    //     product_id=product_id,
+    //     previous_holder=record.current_holder,
+    //     new_holder=sender_addr,
+    //     timestamp=now,
+    //     event_type=String("RECEIPT_CONFIRMED"),
+    //     status=ARC4UInt8(new_status),
+    // )
+    uncover 4
+    swap
+    uncover 3
+    uncover 4
+    // smart_contracts/blocktrace/contract.py:258
+    // event_type=String("RECEIPT_CONFIRMED"),
+    pushbytes "RECEIPT_CONFIRMED"
+    // smart_contracts/blocktrace/contract.py:253-260
+    // self._record_history(
+    //     product_id=product_id,
+    //     previous_holder=record.current_holder,
+    //     new_holder=sender_addr,
+    //     timestamp=now,
+    //     event_type=String("RECEIPT_CONFIRMED"),
+    //     status=ARC4UInt8(new_status),
+    // )
+    uncover 5
+    callsub _record_history
+    // smart_contracts/blocktrace/contract.py:209
+    // @abimethod()
+    intc_1 // 1
+    return
+
+
+// smart_contracts.blocktrace.contract.BlockTrace.update_product_status[routing]() -> void:
+update_product_status:
+    // smart_contracts/blocktrace/contract.py:262
+    // @abimethod()
+    txna ApplicationArgs 1
+    dup
+    intc_2 // 0
+    extract_uint16 // on error: invalid array length header
+    intc_0 // 2
+    +
+    dig 1
+    len
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    extract 2 0
+    dup
+    txna ApplicationArgs 2
+    dup
+    cover 2
+    dup
+    len
+    intc_1 // 1
+    ==
+    assert // invalid number of bytes for arc4.uint8
+    // smart_contracts/blocktrace/contract.py:265
+    // assert product_id in self.products, "Product does not exist"
+    bytec_1 // "products"
+    uncover 2
+    concat
+    dup
+    cover 2
+    dup
+    box_len
+    bury 1
+    assert // Product does not exist
+    // smart_contracts/blocktrace/contract.py:268
+    // assert not record.recalled.native, "Cannot update status of recalled product"
+    dup
+    pushint 119
+    intc_1 // 1
+    box_extract // on error: index out of bounds
+    intc_1 // 1
+    getbit
+    bytec_0 // 0x00
+    intc_2 // 0
+    uncover 2
+    setbit
+    intc_2 // 0
+    getbit
+    dup
+    cover 4
+    !
+    assert // Cannot update status of recalled product
+    // smart_contracts/blocktrace/contract.py:269
+    // assert Txn.sender == record.current_holder.native, "Only current holder can update status"
+    txn Sender
+    swap
+    pushint 34
+    intc_3 // 32
+    box_extract // on error: index out of bounds
+    dup
+    cover 3
+    ==
+    assert // Only current holder can update status
+    // smart_contracts/blocktrace/contract.py:271
+    // target_status = new_status.native
+    btoi
+    dup
+    cover 6
+    // smart_contracts/blocktrace/contract.py:273
+    // target_status == STATUS_SOLD
+    pushint 6
+    ==
+    // smart_contracts/blocktrace/contract.py:273-278
+    // target_status == STATUS_SOLD
+    // or target_status == STATUS_LOST
+    // or target_status == STATUS_MANUFACTURED
+    // or target_status == STATUS_AT_DISTRIBUTOR
+    // or target_status == STATUS_AT_WAREHOUSE
+    // or target_status == STATUS_AT_RETAILER
+    bnz update_product_status_bool_true@7
+    // smart_contracts/blocktrace/contract.py:274
+    // or target_status == STATUS_LOST
+    dig 5
+    pushint 9
+    ==
+    // smart_contracts/blocktrace/contract.py:273-278
+    // target_status == STATUS_SOLD
+    // or target_status == STATUS_LOST
+    // or target_status == STATUS_MANUFACTURED
+    // or target_status == STATUS_AT_DISTRIBUTOR
+    // or target_status == STATUS_AT_WAREHOUSE
+    // or target_status == STATUS_AT_RETAILER
+    bnz update_product_status_bool_true@7
+    // smart_contracts/blocktrace/contract.py:275
+    // or target_status == STATUS_MANUFACTURED
+    dig 5
+    intc_1 // 1
+    ==
+    // smart_contracts/blocktrace/contract.py:273-278
+    // target_status == STATUS_SOLD
+    // or target_status == STATUS_LOST
+    // or target_status == STATUS_MANUFACTURED
+    // or target_status == STATUS_AT_DISTRIBUTOR
+    // or target_status == STATUS_AT_WAREHOUSE
+    // or target_status == STATUS_AT_RETAILER
+    bnz update_product_status_bool_true@7
+    // smart_contracts/blocktrace/contract.py:276
+    // or target_status == STATUS_AT_DISTRIBUTOR
+    dig 5
+    pushint 3
+    ==
+    // smart_contracts/blocktrace/contract.py:273-278
+    // target_status == STATUS_SOLD
+    // or target_status == STATUS_LOST
+    // or target_status == STATUS_MANUFACTURED
+    // or target_status == STATUS_AT_DISTRIBUTOR
+    // or target_status == STATUS_AT_WAREHOUSE
+    // or target_status == STATUS_AT_RETAILER
+    bnz update_product_status_bool_true@7
+    // smart_contracts/blocktrace/contract.py:277
+    // or target_status == STATUS_AT_WAREHOUSE
+    dig 5
+    pushint 4
+    ==
+    // smart_contracts/blocktrace/contract.py:273-278
+    // target_status == STATUS_SOLD
+    // or target_status == STATUS_LOST
+    // or target_status == STATUS_MANUFACTURED
+    // or target_status == STATUS_AT_DISTRIBUTOR
+    // or target_status == STATUS_AT_WAREHOUSE
+    // or target_status == STATUS_AT_RETAILER
+    bnz update_product_status_bool_true@7
+    // smart_contracts/blocktrace/contract.py:278
+    // or target_status == STATUS_AT_RETAILER
+    dig 5
+    pushint 5
+    ==
+    // smart_contracts/blocktrace/contract.py:273-278
+    // target_status == STATUS_SOLD
+    // or target_status == STATUS_LOST
+    // or target_status == STATUS_MANUFACTURED
+    // or target_status == STATUS_AT_DISTRIBUTOR
+    // or target_status == STATUS_AT_WAREHOUSE
+    // or target_status == STATUS_AT_RETAILER
+    bz update_product_status_bool_false@8
+
+update_product_status_bool_true@7:
+    intc_1 // 1
+
+update_product_status_bool_merge@9:
+    // smart_contracts/blocktrace/contract.py:272-279
+    // assert (
+    //     target_status == STATUS_SOLD
+    //     or target_status == STATUS_LOST
+    //     or target_status == STATUS_MANUFACTURED
+    //     or target_status == STATUS_AT_DISTRIBUTOR
+    //     or target_status == STATUS_AT_WAREHOUSE
+    //     or target_status == STATUS_AT_RETAILER
+    // ), "Invalid status transition target"
+    assert // Invalid status transition target
+    // smart_contracts/blocktrace/contract.py:281
+    // now = Global.latest_timestamp
+    global LatestTimestamp
+    // smart_contracts/blocktrace/contract.py:283
+    // product_id=record.product_id,
+    uncover 2
+    dup
+    pushint 120
+    intc_0 // 2
+    box_extract
+    btoi
+    intc_0 // 2
+    +
+    dig 1
+    pushint 120
+    uncover 2
+    box_extract
+    // smart_contracts/blocktrace/contract.py:284
+    // manufacturer=record.manufacturer,
+    dig 1
+    intc_0 // 2
+    intc_3 // 32
+    box_extract // on error: index out of bounds
+    // smart_contracts/blocktrace/contract.py:286
+    // pending_recipient=record.pending_recipient,
+    dig 2
+    pushint 66
+    intc_3 // 32
+    box_extract // on error: index out of bounds
+    // smart_contracts/blocktrace/contract.py:287
+    // batch_id=record.batch_id,
+    dig 3
+    pushint 98
+    intc_0 // 2
+    box_extract
+    btoi
+    dig 4
+    dig 1
+    intc_0 // 2
+    box_extract
+    btoi
+    intc_0 // 2
+    +
+    dig 5
+    cover 2
+    box_extract
+    // smart_contracts/blocktrace/contract.py:288
+    // metadata_hash=record.metadata_hash,
+    dig 4
+    pushint 100
+    intc_0 // 2
+    box_extract
+    btoi
+    dig 5
+    dig 1
+    intc_0 // 2
+    box_extract
+    btoi
+    intc_0 // 2
+    +
+    dig 6
+    cover 2
+    box_extract
+    // smart_contracts/blocktrace/contract.py:289
+    // creation_timestamp=record.creation_timestamp,
+    dig 5
+    pushints 102 8
+    box_extract // on error: index out of bounds
+    // smart_contracts/blocktrace/contract.py:290
+    // last_update_timestamp=ARC4UInt64(now),
+    dig 7
+    itob
+    // smart_contracts/blocktrace/contract.py:294
+    // counterfeit_reported=record.counterfeit_reported,
+    dig 7
+    pushint 119
+    intc_1 // 1
+    box_extract // on error: index out of bounds
+    intc_0 // 2
+    getbit
+    bytec_0 // 0x00
+    intc_2 // 0
+    uncover 2
+    setbit
+    // smart_contracts/blocktrace/contract.py:282-295
+    // updated_record = ProductRecord(
+    //     product_id=record.product_id,
+    //     manufacturer=record.manufacturer,
+    //     current_holder=record.current_holder,
+    //     pending_recipient=record.pending_recipient,
+    //     batch_id=record.batch_id,
+    //     metadata_hash=record.metadata_hash,
+    //     creation_timestamp=record.creation_timestamp,
+    //     last_update_timestamp=ARC4UInt64(now),
+    //     current_status=new_status,
+    //     product_exists=ARC4Bool(True),
+    //     recalled=record.recalled,
+    //     counterfeit_reported=record.counterfeit_reported,
+    // )
+    dig 7
+    len
+    pushint 120
+    +
+    bytec_3 // 0x0078
+    uncover 8
+    concat
+    uncover 11
+    dup
+    cover 8
+    concat
+    uncover 8
+    concat
+    dig 1
+    itob
+    extract 6 2
+    concat
+    dig 6
+    len
+    uncover 2
+    +
+    itob
+    extract 6 2
+    concat
+    uncover 3
+    concat
+    uncover 2
+    concat
+    uncover 9
+    dup
+    cover 2
+    concat
+    // smart_contracts/blocktrace/contract.py:292
+    // product_exists=ARC4Bool(True),
+    bytec 4 // 0x80
+    // smart_contracts/blocktrace/contract.py:282-295
+    // updated_record = ProductRecord(
+    //     product_id=record.product_id,
+    //     manufacturer=record.manufacturer,
+    //     current_holder=record.current_holder,
+    //     pending_recipient=record.pending_recipient,
+    //     batch_id=record.batch_id,
+    //     metadata_hash=record.metadata_hash,
+    //     creation_timestamp=record.creation_timestamp,
+    //     last_update_timestamp=ARC4UInt64(now),
+    //     current_status=new_status,
+    //     product_exists=ARC4Bool(True),
+    //     recalled=record.recalled,
+    //     counterfeit_reported=record.counterfeit_reported,
+    // )
+    intc_1 // 1
+    uncover 11
+    setbit
+    uncover 3
+    intc_2 // 0
+    getbit
+    intc_0 // 2
+    swap
+    setbit
+    concat
+    uncover 5
+    concat
+    uncover 3
+    concat
+    uncover 2
+    concat
+    // smart_contracts/blocktrace/contract.py:296
+    // self.products[product_id] = updated_record.copy()
+    dig 3
+    box_del
+    pop
+    uncover 3
+    swap
+    box_put
+    // smart_contracts/blocktrace/contract.py:298-305
+    // self._record_history(
+    //     product_id=product_id,
+    //     previous_holder=record.current_holder,
+    //     new_holder=record.current_holder,
+    //     timestamp=now,
+    //     event_type=String("STATUS_UPDATED"),
+    //     status=new_status,
+    // )
+    uncover 3
+    dig 2
+    uncover 3
+    uncover 4
+    // smart_contracts/blocktrace/contract.py:303
+    // event_type=String("STATUS_UPDATED"),
+    pushbytes "STATUS_UPDATED"
+    // smart_contracts/blocktrace/contract.py:298-305
+    // self._record_history(
+    //     product_id=product_id,
+    //     previous_holder=record.current_holder,
+    //     new_holder=record.current_holder,
+    //     timestamp=now,
+    //     event_type=String("STATUS_UPDATED"),
+    //     status=new_status,
+    // )
+    uncover 5
+    callsub _record_history
+    // smart_contracts/blocktrace/contract.py:262
+    // @abimethod()
+    intc_1 // 1
+    return
+
+update_product_status_bool_false@8:
+    intc_2 // 0
+    b update_product_status_bool_merge@9
+
+
+// smart_contracts.blocktrace.contract.BlockTrace.report_counterfeit[routing]() -> void:
+report_counterfeit:
+    // smart_contracts/blocktrace/contract.py:307
+    // @abimethod()
+    txna ApplicationArgs 1
+    dup
+    intc_2 // 0
+    extract_uint16 // on error: invalid array length header
+    intc_0 // 2
+    +
+    dig 1
+    len
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    extract 2 0
+    txna ApplicationArgs 2
+    dup
+    intc_2 // 0
+    extract_uint16 // on error: invalid array length header
+    intc_0 // 2
+    +
+    dig 1
+    len
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    extract 2 0
+    // smart_contracts/blocktrace/contract.py:310
+    // assert product_id in self.products, "Product does not exist"
+    bytec_1 // "products"
+    dig 2
+    concat
+    dup
+    box_len
+    bury 1
+    assert // Product does not exist
+    // smart_contracts/blocktrace/contract.py:311
+    // assert bool(report_hash), "Report hash cannot be empty"
+    swap
+    len
+    assert // Report hash cannot be empty
+    // smart_contracts/blocktrace/contract.py:314
+    // now = Global.latest_timestamp
+    global LatestTimestamp
+    // smart_contracts/blocktrace/contract.py:317
+    // product_id=record.product_id,
+    dig 1
+    pushint 120
+    intc_0 // 2
+    box_extract
+    btoi
+    intc_0 // 2
+    +
+    dig 2
+    pushint 120
+    uncover 2
+    box_extract
+    // smart_contracts/blocktrace/contract.py:318
+    // manufacturer=record.manufacturer,
+    dig 2
+    intc_0 // 2
+    intc_3 // 32
+    box_extract // on error: index out of bounds
+    // smart_contracts/blocktrace/contract.py:319
+    // current_holder=record.current_holder,
+    dig 3
+    pushint 34
+    intc_3 // 32
+    box_extract // on error: index out of bounds
+    // smart_contracts/blocktrace/contract.py:320
+    // pending_recipient=record.pending_recipient,
+    dig 4
+    pushint 66
+    intc_3 // 32
+    box_extract // on error: index out of bounds
+    // smart_contracts/blocktrace/contract.py:321
+    // batch_id=record.batch_id,
+    dig 5
+    pushint 98
+    intc_0 // 2
+    box_extract
+    btoi
+    dig 6
+    dig 1
+    intc_0 // 2
+    box_extract
+    btoi
+    intc_0 // 2
+    +
+    dig 7
+    cover 2
+    box_extract
+    // smart_contracts/blocktrace/contract.py:322
+    // metadata_hash=record.metadata_hash,
+    dig 6
+    pushint 100
+    intc_0 // 2
+    box_extract
+    btoi
+    dig 7
+    dig 1
+    intc_0 // 2
+    box_extract
+    btoi
+    intc_0 // 2
+    +
+    dig 8
+    cover 2
+    box_extract
+    // smart_contracts/blocktrace/contract.py:323
+    // creation_timestamp=record.creation_timestamp,
+    dig 7
+    pushints 102 8
+    box_extract // on error: index out of bounds
+    // smart_contracts/blocktrace/contract.py:324
+    // last_update_timestamp=ARC4UInt64(now),
+    dig 7
+    itob
+    // smart_contracts/blocktrace/contract.py:327
+    // recalled=record.recalled,
+    dig 9
+    pushint 119
+    intc_1 // 1
+    box_extract // on error: index out of bounds
+    intc_1 // 1
+    getbit
+    bytec_0 // 0x00
+    intc_2 // 0
+    uncover 2
+    setbit
+    // smart_contracts/blocktrace/contract.py:316-329
+    // updated_record = ProductRecord(
+    //     product_id=record.product_id,
+    //     manufacturer=record.manufacturer,
+    //     current_holder=record.current_holder,
+    //     pending_recipient=record.pending_recipient,
+    //     batch_id=record.batch_id,
+    //     metadata_hash=record.metadata_hash,
+    //     creation_timestamp=record.creation_timestamp,
+    //     last_update_timestamp=ARC4UInt64(now),
+    //     current_status=ARC4UInt8(STATUS_COUNTERFEIT_REPORTED),
+    //     product_exists=ARC4Bool(True),
+    //     recalled=record.recalled,
+    //     counterfeit_reported=ARC4Bool(True),
+    // )
+    dig 8
+    len
+    pushint 120
+    +
+    bytec_3 // 0x0078
+    uncover 9
+    concat
+    dig 8
+    concat
+    uncover 7
+    concat
+    dig 1
+    itob
+    extract 6 2
+    concat
+    dig 6
+    len
+    uncover 2
+    +
+    itob
+    extract 6 2
+    concat
+    uncover 3
+    concat
+    uncover 2
+    concat
+    // smart_contracts/blocktrace/contract.py:325
+    // current_status=ARC4UInt8(STATUS_COUNTERFEIT_REPORTED),
+    pushbytes 0x08
+    // smart_contracts/blocktrace/contract.py:316-329
+    // updated_record = ProductRecord(
+    //     product_id=record.product_id,
+    //     manufacturer=record.manufacturer,
+    //     current_holder=record.current_holder,
+    //     pending_recipient=record.pending_recipient,
+    //     batch_id=record.batch_id,
+    //     metadata_hash=record.metadata_hash,
+    //     creation_timestamp=record.creation_timestamp,
+    //     last_update_timestamp=ARC4UInt64(now),
+    //     current_status=ARC4UInt8(STATUS_COUNTERFEIT_REPORTED),
+    //     product_exists=ARC4Bool(True),
+    //     recalled=record.recalled,
+    //     counterfeit_reported=ARC4Bool(True),
+    // )
+    concat
+    swap
+    intc_2 // 0
+    getbit
+    // smart_contracts/blocktrace/contract.py:326
+    // product_exists=ARC4Bool(True),
+    bytec 4 // 0x80
+    // smart_contracts/blocktrace/contract.py:316-329
+    // updated_record = ProductRecord(
+    //     product_id=record.product_id,
+    //     manufacturer=record.manufacturer,
+    //     current_holder=record.current_holder,
+    //     pending_recipient=record.pending_recipient,
+    //     batch_id=record.batch_id,
+    //     metadata_hash=record.metadata_hash,
+    //     creation_timestamp=record.creation_timestamp,
+    //     last_update_timestamp=ARC4UInt64(now),
+    //     current_status=ARC4UInt8(STATUS_COUNTERFEIT_REPORTED),
+    //     product_exists=ARC4Bool(True),
+    //     recalled=record.recalled,
+    //     counterfeit_reported=ARC4Bool(True),
+    // )
+    intc_1 // 1
+    uncover 2
+    setbit
+    intc_0 // 2
+    intc_1 // 1
+    setbit
+    concat
+    uncover 4
+    concat
+    uncover 2
+    concat
+    swap
+    concat
+    // smart_contracts/blocktrace/contract.py:330
+    // self.products[product_id] = updated_record.copy()
+    dig 3
+    box_del
+    pop
+    uncover 3
+    swap
+    box_put
+    // smart_contracts/blocktrace/contract.py:332-339
+    // self._record_history(
+    //     product_id=product_id,
+    //     previous_holder=record.current_holder,
+    //     new_holder=record.current_holder,
+    //     timestamp=now,
+    //     event_type=String("COUNTERFEIT_REPORTED"),
+    //     status=ARC4UInt8(STATUS_COUNTERFEIT_REPORTED),
+    // )
+    uncover 2
+    dig 1
+    uncover 2
+    uncover 3
+    // smart_contracts/blocktrace/contract.py:337
+    // event_type=String("COUNTERFEIT_REPORTED"),
+    pushbytess "COUNTERFEIT_REPORTED" 0x08
+    // smart_contracts/blocktrace/contract.py:332-339
+    // self._record_history(
+    //     product_id=product_id,
+    //     previous_holder=record.current_holder,
+    //     new_holder=record.current_holder,
+    //     timestamp=now,
+    //     event_type=String("COUNTERFEIT_REPORTED"),
+    //     status=ARC4UInt8(STATUS_COUNTERFEIT_REPORTED),
+    // )
+    callsub _record_history
+    // smart_contracts/blocktrace/contract.py:307
+    // @abimethod()
+    intc_1 // 1
+    return
+
+
+// smart_contracts.blocktrace.contract.BlockTrace.recall_product[routing]() -> void:
+recall_product:
+    // smart_contracts/blocktrace/contract.py:341
+    // @abimethod()
+    txna ApplicationArgs 1
+    dup
+    intc_2 // 0
+    extract_uint16 // on error: invalid array length header
+    intc_0 // 2
+    +
+    dig 1
+    len
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    extract 2 0
+    dup
+    // smart_contracts/blocktrace/contract.py:344
+    // assert product_id in self.products, "Product does not exist"
+    bytec_1 // "products"
+    swap
+    concat
+    dup
+    box_len
+    bury 1
+    assert // Product does not exist
+    // smart_contracts/blocktrace/contract.py:348
+    // Txn.sender == self.admin or Txn.sender == record.manufacturer.native
+    txn Sender
+    intc_2 // 0
+    bytec_2 // "admin"
+    app_global_get_ex
+    assert // check self.admin exists
+    ==
+    bnz recall_product_bool_true@3
+    txn Sender
+    dig 1
+    intc_0 // 2
+    intc_3 // 32
+    box_extract // on error: index out of bounds
+    ==
+    bz recall_product_bool_false@4
+
+recall_product_bool_true@3:
+    intc_1 // 1
+
+recall_product_bool_merge@5:
+    // smart_contracts/blocktrace/contract.py:347-349
+    // assert (
+    //     Txn.sender == self.admin or Txn.sender == record.manufacturer.native
+    // ), "Only admin or product manufacturer can recall"
+    assert // Only admin or product manufacturer can recall
+    // smart_contracts/blocktrace/contract.py:351
+    // now = Global.latest_timestamp
+    global LatestTimestamp
+    // smart_contracts/blocktrace/contract.py:353
+    // product_id=record.product_id,
+    swap
+    dup
+    pushint 120
+    intc_0 // 2
+    box_extract
+    btoi
+    intc_0 // 2
+    +
+    dig 1
+    pushint 120
+    uncover 2
+    box_extract
+    // smart_contracts/blocktrace/contract.py:354
+    // manufacturer=record.manufacturer,
+    dig 1
+    intc_0 // 2
+    intc_3 // 32
+    box_extract // on error: index out of bounds
+    // smart_contracts/blocktrace/contract.py:355
+    // current_holder=record.current_holder,
+    dig 2
+    pushint 34
+    intc_3 // 32
+    box_extract // on error: index out of bounds
+    // smart_contracts/blocktrace/contract.py:356
+    // pending_recipient=record.pending_recipient,
+    dig 3
+    pushint 66
+    intc_3 // 32
+    box_extract // on error: index out of bounds
+    // smart_contracts/blocktrace/contract.py:357
+    // batch_id=record.batch_id,
+    dig 4
+    pushint 98
+    intc_0 // 2
+    box_extract
+    btoi
+    dig 5
+    dig 1
+    intc_0 // 2
+    box_extract
+    btoi
+    intc_0 // 2
+    +
+    dig 6
+    cover 2
+    box_extract
+    // smart_contracts/blocktrace/contract.py:358
+    // metadata_hash=record.metadata_hash,
+    dig 5
+    pushint 100
+    intc_0 // 2
+    box_extract
+    btoi
+    dig 6
+    dig 1
+    intc_0 // 2
+    box_extract
+    btoi
+    intc_0 // 2
+    +
+    dig 7
+    cover 2
+    box_extract
+    // smart_contracts/blocktrace/contract.py:359
+    // creation_timestamp=record.creation_timestamp,
+    dig 6
+    pushints 102 8
+    box_extract // on error: index out of bounds
+    // smart_contracts/blocktrace/contract.py:360
+    // last_update_timestamp=ARC4UInt64(now),
+    dig 8
+    itob
+    // smart_contracts/blocktrace/contract.py:364
+    // counterfeit_reported=record.counterfeit_reported,
+    dig 8
+    pushint 119
+    intc_1 // 1
+    box_extract // on error: index out of bounds
+    intc_0 // 2
+    getbit
+    bytec_0 // 0x00
+    intc_2 // 0
+    uncover 2
+    setbit
+    // smart_contracts/blocktrace/contract.py:352-365
+    // updated_record = ProductRecord(
+    //     product_id=record.product_id,
+    //     manufacturer=record.manufacturer,
+    //     current_holder=record.current_holder,
+    //     pending_recipient=record.pending_recipient,
+    //     batch_id=record.batch_id,
+    //     metadata_hash=record.metadata_hash,
+    //     creation_timestamp=record.creation_timestamp,
+    //     last_update_timestamp=ARC4UInt64(now),
+    //     current_status=ARC4UInt8(STATUS_RECALLED),
+    //     product_exists=ARC4Bool(True),
+    //     recalled=ARC4Bool(True),
+    //     counterfeit_reported=record.counterfeit_reported,
+    // )
+    dig 8
+    len
+    pushint 120
+    +
+    bytec_3 // 0x0078
+    uncover 9
+    concat
+    dig 8
+    concat
+    uncover 7
+    concat
+    dig 1
+    itob
+    extract 6 2
+    concat
+    dig 6
+    len
+    uncover 2
+    +
+    itob
+    extract 6 2
+    concat
+    uncover 3
+    concat
+    uncover 2
+    concat
+    // smart_contracts/blocktrace/contract.py:361
+    // current_status=ARC4UInt8(STATUS_RECALLED),
+    pushbytes 0x07
+    // smart_contracts/blocktrace/contract.py:352-365
+    // updated_record = ProductRecord(
+    //     product_id=record.product_id,
+    //     manufacturer=record.manufacturer,
+    //     current_holder=record.current_holder,
+    //     pending_recipient=record.pending_recipient,
+    //     batch_id=record.batch_id,
+    //     metadata_hash=record.metadata_hash,
+    //     creation_timestamp=record.creation_timestamp,
+    //     last_update_timestamp=ARC4UInt64(now),
+    //     current_status=ARC4UInt8(STATUS_RECALLED),
+    //     product_exists=ARC4Bool(True),
+    //     recalled=ARC4Bool(True),
+    //     counterfeit_reported=record.counterfeit_reported,
+    // )
+    concat
+    swap
+    intc_2 // 0
+    getbit
+    pushbytes 0xc0
+    intc_0 // 2
+    uncover 2
+    setbit
+    concat
+    uncover 4
+    concat
+    uncover 2
+    concat
+    swap
+    concat
+    // smart_contracts/blocktrace/contract.py:366
+    // self.products[product_id] = updated_record.copy()
+    dig 2
+    box_del
+    pop
+    uncover 2
+    swap
+    box_put
+    // smart_contracts/blocktrace/contract.py:368-375
+    // self._record_history(
+    //     product_id=product_id,
+    //     previous_holder=record.current_holder,
+    //     new_holder=record.current_holder,
+    //     timestamp=now,
+    //     event_type=String("PRODUCT_RECALLED"),
+    //     status=ARC4UInt8(STATUS_RECALLED),
+    // )
+    uncover 2
+    dig 1
+    uncover 2
+    uncover 3
+    // smart_contracts/blocktrace/contract.py:373
+    // event_type=String("PRODUCT_RECALLED"),
+    pushbytess "PRODUCT_RECALLED" 0x07
+    // smart_contracts/blocktrace/contract.py:368-375
+    // self._record_history(
+    //     product_id=product_id,
+    //     previous_holder=record.current_holder,
+    //     new_holder=record.current_holder,
+    //     timestamp=now,
+    //     event_type=String("PRODUCT_RECALLED"),
+    //     status=ARC4UInt8(STATUS_RECALLED),
+    // )
+    callsub _record_history
+    // smart_contracts/blocktrace/contract.py:341
+    // @abimethod()
+    intc_1 // 1
+    return
+
+recall_product_bool_false@4:
+    intc_2 // 0
+    b recall_product_bool_merge@5
+
+
+// smart_contracts.blocktrace.contract.BlockTrace.verify_product[routing]() -> void:
+verify_product:
+    // smart_contracts/blocktrace/contract.py:377
+    // @abimethod(readonly=True)
+    txna ApplicationArgs 1
+    dup
+    intc_2 // 0
+    extract_uint16 // on error: invalid array length header
+    intc_0 // 2
+    +
+    dig 1
+    len
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    extract 2 0
+    // smart_contracts/blocktrace/contract.py:380
+    // assert product_id in self.products, "Product does not exist"
+    bytec_1 // "products"
+    swap
+    concat
+    dup
+    box_len
+    bury 1
+    assert // Product does not exist
+    // smart_contracts/blocktrace/contract.py:381
+    // return self.products[product_id].copy()
+    box_get
+    pop
+    // smart_contracts/blocktrace/contract.py:377
+    // @abimethod(readonly=True)
+    bytec 5 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_1 // 1
+    return
+
+
+// smart_contracts.blocktrace.contract.BlockTrace.get_product_status[routing]() -> void:
+get_product_status:
+    // smart_contracts/blocktrace/contract.py:383
+    // @abimethod(readonly=True)
+    txna ApplicationArgs 1
+    dup
+    intc_2 // 0
+    extract_uint16 // on error: invalid array length header
+    intc_0 // 2
+    +
+    dig 1
+    len
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    extract 2 0
+    // smart_contracts/blocktrace/contract.py:386
+    // assert product_id in self.products, "Product does not exist"
+    bytec_1 // "products"
+    swap
+    concat
+    dup
+    box_len
+    bury 1
+    assert // Product does not exist
+    // smart_contracts/blocktrace/contract.py:387
+    // return self.products[product_id].copy().current_status
+    pushint 118
+    intc_1 // 1
+    box_extract // on error: index out of bounds
+    // smart_contracts/blocktrace/contract.py:383
+    // @abimethod(readonly=True)
+    bytec 5 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_1 // 1
+    return
+
+
+// smart_contracts.blocktrace.contract.BlockTrace.get_history_count[routing]() -> void:
+get_history_count:
+    // smart_contracts/blocktrace/contract.py:389
+    // @abimethod(readonly=True)
+    txna ApplicationArgs 1
+    dup
+    intc_2 // 0
+    extract_uint16 // on error: invalid array length header
+    intc_0 // 2
+    +
+    dig 1
+    len
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    extract 2 0
+    // smart_contracts/blocktrace/contract.py:392
+    // if product_id in self.history_counts:
+    bytec 7 // "history_counts"
+    swap
+    concat
+    dup
+    box_len
+    bury 1
+    bz get_history_count_after_if_else@3
+    // smart_contracts/blocktrace/contract.py:393
+    // return self.history_counts[product_id]
+    box_get
+    assert // check self.history_counts entry exists
+    btoi
+
+get_history_count_after_inlined_smart_contracts.blocktrace.contract.BlockTrace.get_history_count@4:
+    // smart_contracts/blocktrace/contract.py:389
+    // @abimethod(readonly=True)
+    itob
+    bytec 5 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_1 // 1
+    return
+
+get_history_count_after_if_else@3:
+    pop
+    // smart_contracts/blocktrace/contract.py:394
+    // return UInt64(0)
+    intc_2 // 0
+    // smart_contracts/blocktrace/contract.py:389
+    // @abimethod(readonly=True)
+    b get_history_count_after_inlined_smart_contracts.blocktrace.contract.BlockTrace.get_history_count@4
+
+
+// smart_contracts.blocktrace.contract.BlockTrace.get_history_event[routing]() -> void:
+get_history_event:
+    // smart_contracts/blocktrace/contract.py:396
+    // @abimethod(readonly=True)
+    txna ApplicationArgs 1
+    dup
+    intc_2 // 0
+    extract_uint16 // on error: invalid array length header
+    intc_0 // 2
+    +
+    dig 1
+    len
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    extract 2 0
+    txna ApplicationArgs 2
+    dup
+    len
+    pushint 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    // smart_contracts/blocktrace/contract.py:404
+    // return product_id.bytes + op.itob(index)
+    itob
+    concat
+    // smart_contracts/blocktrace/contract.py:400
+    // assert key in self.history_events, "History event index out of bounds"
+    bytec 8 // "history_events"
+    swap
+    concat
+    dup
+    box_len
+    bury 1
+    assert // History event index out of bounds
+    // smart_contracts/blocktrace/contract.py:401
+    // return self.history_events[key].copy()
+    box_get
+    pop
+    // smart_contracts/blocktrace/contract.py:396
+    // @abimethod(readonly=True)
+    bytec 5 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_1 // 1
+    return
+
+
+// smart_contracts.blocktrace.contract.BlockTrace.get_participant_role(account: bytes) -> bytes:
+smart_contracts.blocktrace.contract.BlockTrace.get_participant_role:
+    // smart_contracts/blocktrace/contract.py:111-112
+    // @abimethod()
+    // def get_participant_role(self, account: Account) -> ARC4UInt8:
+    proto 1 1
+    intc_2 // 0
+    // smart_contracts/blocktrace/contract.py:114
+    // if account in self.participants:
+    bytec 6 // "participants"
+    frame_dig -1
+    concat
+    dup
+    box_len
+    bury 1
+    bz smart_contracts.blocktrace.contract.BlockTrace.get_participant_role_after_if_else@4
+    // smart_contracts/blocktrace/contract.py:115
+    // info = self.participants[account].copy()
+    frame_dig 1
+    box_get
+    swap
+    dup
+    cover 2
+    frame_bury 0
+    assert // check self.participants entry exists
+    // smart_contracts/blocktrace/contract.py:116
+    // if info.is_authorized.native:
+    pushint 8
+    getbit
+    bytec_0 // 0x00
+    intc_2 // 0
+    uncover 2
+    setbit
+    intc_2 // 0
+    getbit
+    bz smart_contracts.blocktrace.contract.BlockTrace.get_participant_role_after_if_else@4
+    // smart_contracts/blocktrace/contract.py:117
+    // return info.role
+    frame_dig 0
+    extract 0 1
+    frame_bury 0
+    retsub
+
+smart_contracts.blocktrace.contract.BlockTrace.get_participant_role_after_if_else@4:
+    // smart_contracts/blocktrace/contract.py:118
+    // return ARC4UInt8(ROLE_NONE)
+    bytec_0 // 0x00
+    frame_bury 0
+    retsub
+
+
+// smart_contracts.blocktrace.contract.BlockTrace._record_history(product_id: bytes, previous_holder: bytes, new_holder: bytes, timestamp: uint64, event_type: bytes, status: bytes) -> void:
+_record_history:
+    // smart_contracts/blocktrace/contract.py:406-414
+    // def _record_history(
+    //     self,
+    //     product_id: String,
+    //     previous_holder: ARC4Address,
+    //     new_holder: ARC4Address,
+    //     timestamp: UInt64,
+    //     event_type: String,
+    //     status: ARC4UInt8,
+    // ) -> None:
+    proto 6 0
+    // smart_contracts/blocktrace/contract.py:415
+    // count = UInt64(0)
+    intc_2 // 0
+    // smart_contracts/blocktrace/contract.py:416
+    // if product_id in self.history_counts:
+    bytec 7 // "history_counts"
+    frame_dig -6
+    concat
+    dup
+    box_len
+    bury 1
+    bz _record_history_after_if_else@2
+    // smart_contracts/blocktrace/contract.py:417
+    // count = self.history_counts[product_id]
+    dup
+    box_get
+    assert // check self.history_counts entry exists
+    btoi
+    frame_bury 0
+
+_record_history_after_if_else@2:
+    // smart_contracts/blocktrace/contract.py:404
+    // return product_id.bytes + op.itob(index)
+    frame_dig 0
+    dup
+    itob
+    frame_dig -6
+    swap
+    concat
+    // smart_contracts/blocktrace/contract.py:421
+    // product_id=ARC4String(product_id),
+    frame_dig -6
+    len
+    itob
+    extract 6 2
+    frame_dig -6
+    concat
+    // smart_contracts/blocktrace/contract.py:424
+    // timestamp=ARC4UInt64(timestamp),
+    frame_dig -3
+    itob
+    // smart_contracts/blocktrace/contract.py:425
+    // event_type=ARC4String(event_type),
+    frame_dig -2
+    len
+    itob
+    extract 6 2
+    frame_dig -2
+    concat
+    // smart_contracts/blocktrace/contract.py:420-427
+    // event = HistoryEvent(
+    //     product_id=ARC4String(product_id),
+    //     previous_holder=previous_holder,
+    //     new_holder=new_holder,
+    //     timestamp=ARC4UInt64(timestamp),
+    //     event_type=ARC4String(event_type),
+    //     status=status,
+    // )
+    dig 2
+    len
+    pushint 77
+    +
+    pushbytes 0x004d
+    frame_dig -5
+    concat
+    frame_dig -4
+    concat
+    uncover 3
+    concat
+    swap
+    itob
+    extract 6 2
+    concat
+    frame_dig -1
+    concat
+    uncover 2
+    concat
+    swap
+    concat
+    // smart_contracts/blocktrace/contract.py:428
+    // self.history_events[key] = event.copy()
+    bytec 8 // "history_events"
+    uncover 2
+    concat
+    dup
+    box_del
+    pop
+    swap
+    box_put
+    // smart_contracts/blocktrace/contract.py:429
+    // self.history_counts[product_id] = count + UInt64(1)
+    intc_1 // 1
+    +
+    itob
+    box_put
+    retsub

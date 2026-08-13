@@ -1,101 +1,407 @@
-# algomahesh
+# BlockTrace — Blockchain-Based Supply Chain Product Traceability & Anti-Counterfeit System
 
-This project has been generated using AlgoKit. See below for default getting started instructions.
+> Built on [Algorand](https://www.algorand.com/) using [AlgoKit](https://github.com/algorandfoundation/algokit-cli) · Python Smart Contracts · ARC-4 · Box Storage
 
-# Setup
+---
 
-### Pre-requisites
+## 1. Problem Statement
 
-- [Python 3.12](https://www.python.org/downloads/) or later
-- [Docker](https://www.docker.com/) (only required for LocalNet)
+Traditional supply chains rely on centralized databases controlled by a single entity, creating risks of:
 
-> For interactive tour over the codebase, download [vsls-contrib.codetour](https://marketplace.visualstudio.com/items?itemName=vsls-contrib.codetour) extension for VS Code, then open the [`.codetour.json`](./.tours/getting-started-with-your-algokit-project.tour) file in code tour extension.
+- **Data tampering** — records modified by insiders or hackers
+- **Counterfeit products** — no independent way to verify product authenticity
+- **Opaque custody chains** — customers cannot verify the full product journey
+- **Recall inefficiency** — no reliable way to locate or flag affected batches
 
-### Initial Setup
+---
 
-#### 1. Clone the Repository
-Start by cloning this repository to your local machine.
+## 2. Proposed Solution
 
-#### 2. Install Pre-requisites
-Ensure the following pre-requisites are installed and properly configured:
+**BlockTrace** creates a **blockchain-backed digital identity** for every physical product. All critical supply-chain lifecycle events are recorded on the Algorand blockchain, creating a **tamper-resistant** and **independently verifiable** audit trail.
 
-- **Docker**: Required for running a local Algorand network. [Install Docker](https://www.docker.com/).
-- **AlgoKit CLI**: Essential for project setup and operations. Install the latest version from [AlgoKit CLI Installation Guide](https://github.com/algorandfoundation/algokit-cli#install). Verify installation with `algokit --version`, expecting `2.0.0` or later.
+```
+Manufacturer → Distributor → Warehouse → Retailer → Customer
+     ↓               ↓             ↓           ↓          ↓
+  [register]   [transfer/receive] ...      [sold]    [verify via QR]
+```
 
-#### 3. Bootstrap Your Local Environment
-Run the following commands within the project folder:
+---
 
-- **Install Poetry**: Required for Python dependency management. [Installation Guide](https://python-poetry.org/docs/#installation). Verify with `poetry -V` to see version `1.2`+.
-- **Setup Project**: Execute `algokit project bootstrap all` to install dependencies and setup a Python virtual environment in `.venv`.
-- **Configure environment**: Execute `algokit generate env-file -a target_network localnet` to create a `.env.localnet` file with default configuration for `localnet`.
-- **Start LocalNet**: Use `algokit localnet start` to initiate a local Algorand network.
+## 3. Why Blockchain?
 
-### Development Workflow
+| Property | Centralized DB | Algorand Blockchain |
+|---|---|---|
+| Tamper resistance | ❌ Single point of control | ✅ Immutable, distributed |
+| Verification | ❌ Trust organization | ✅ Verify independently |
+| Transparency | ❌ Hidden | ✅ Publicly auditable |
+| Counterfeit detection | ❌ Manual | ✅ On-chain state lookup |
 
-#### Terminal
-Directly manage and interact with your project using AlgoKit commands:
+---
 
-1. **Build Contracts**: `algokit project run build` compiles all smart contracts. You can also specify a specific contract by passing the name of the contract folder as an extra argument.
-For example: `algokit project run build -- hello_world` will only build the `hello_world` contract.
-2. **Deploy**: Use `algokit project deploy localnet` to deploy contracts to the local network. You can also specify a specific contract by passing the name of the contract folder as an extra argument.
-For example: `algokit project deploy localnet -- hello_world` will only deploy the `hello_world` contract.
+## 4. Why Algorand?
 
-#### VS Code 
-For a seamless experience with breakpoint debugging and other features:
+- **Fast finality** — 4-second block times, instant confirmation
+- **Low fees** — ~0.001 ALGO per transaction
+- **Python-native smart contracts** — via `algorand-python` (Puya compiler)
+- **Box storage** — efficient per-key on-chain storage for product records
+- **ARC-4** — standardized ABI for typed method calls and client generation
 
-1. **Open Project**: In VS Code, open the repository root.
-2. **Install Extensions**: Follow prompts to install recommended extensions.
-3. **Debugging**:
-   - Use `F5` to start debugging.
-   - **Windows Users**: Select the Python interpreter at `./.venv/Scripts/python.exe` via `Ctrl/Cmd + Shift + P` > `Python: Select Interpreter` before the first run.
+---
 
-#### JetBrains IDEs
-While primarily optimized for VS Code, JetBrains IDEs are supported:
+## 5. Architecture
 
-1. **Open Project**: In your JetBrains IDE, open the repository root.
-2. **Automatic Setup**: The IDE should configure the Python interpreter and virtual environment.
-3. **Debugging**: Use `Shift+F10` or `Ctrl+R` to start debugging. Note: Windows users may encounter issues with pre-launch tasks due to a known bug. See [JetBrains forums](https://youtrack.jetbrains.com/issue/IDEA-277486/Shell-script-configuration-cannot-run-as-before-launch-task) for workarounds.
+```
+┌──────────────────────────────────────────────────────────────┐
+│                     BLOCKTRACE CONTRACT                      │
+│                                                              │
+│  Global State:                                               │
+│    admin (address)                                           │
+│                                                              │
+│  Box Maps:                                                   │
+│    participants[account] → ParticipantInfo{role, authorized} │
+│    products[product_id]  → ProductRecord{...}               │
+│    history_counts[id]    → UInt64                           │
+│    history_events[id+i]  → HistoryEvent{...}                │
+└──────────────────────────────────────────────────────────────┘
+         ↑                              ↑
+   algokit-utils v4               ARC-56 JSON spec
+   Typed Python client            (auto-generated)
+```
 
-## AlgoKit Workspaces and Project Management
-This project supports both standalone and monorepo setups through AlgoKit workspaces. Leverage [`algokit project run`](https://github.com/algorandfoundation/algokit-cli/blob/main/docs/features/project/run.md) commands for efficient monorepo project orchestration and management across multiple projects within a workspace.
+---
 
-## AlgoKit Generators
+## 6. Product Lifecycle / State Machine
 
-This template provides a set of [algokit generators](https://github.com/algorandfoundation/algokit-cli/blob/main/docs/features/generate.md) that allow you to further modify the project instantiated from the template to fit your needs, as well as giving you a base to build your own extensions to invoke via the `algokit generate` command.
+```
+REGISTERED
+    ↓  (register_product)
+MANUFACTURED  ←→  IN_TRANSIT  ←→  AT_DISTRIBUTOR
+                     ↓
+                AT_WAREHOUSE
+                     ↓
+                 AT_RETAILER
+                     ↓
+                   SOLD
 
-### Generate Smart Contract 
+Any state → RECALLED           (admin/manufacturer only)
+Any state → COUNTERFEIT_REPORTED (anyone with evidence hash)
+Any state → LOST               (current holder)
+```
 
-By default the template creates a single `HelloWorld` contract under hello_world folder in the `smart_contracts` directory. To add a new contract:
+### Status Codes
 
-1. From the root of the project (`../`) execute `algokit generate smart-contract`. This will create a new starter smart contract and deployment configuration file under `{your_contract_name}` subfolder in the `smart_contracts` directory.
-2. Each contract potentially has different creation parameters and deployment steps. Hence, you need to define your deployment logic in `deploy_config.py`file.
-3. `config.py` file will automatically build all contracts in the `smart_contracts` directory. If you want to build specific contracts manually, modify the default code provided by the template in `config.py` file.
+| Code | Status | Description |
+|---|---|---|
+| 0 | REGISTERED | Product just registered on-chain |
+| 1 | MANUFACTURED | Confirmed by manufacturer |
+| 2 | IN_TRANSIT | Custody transfer in-flight |
+| 3 | AT_DISTRIBUTOR | Received by distributor |
+| 4 | AT_WAREHOUSE | Received by warehouse |
+| 5 | AT_RETAILER | Received by retailer |
+| 6 | SOLD | Marked sold by retailer |
+| 7 | RECALLED | Recalled — no further transfer allowed |
+| 8 | COUNTERFEIT_REPORTED | Flagged as suspicious |
+| 9 | LOST | Reported lost by holder |
 
-> Please note, above is just a suggested convention tailored for the base configuration and structure of this template. The default code supplied by the template in `config.py` and `index.ts` (if using ts clients) files are tailored for the suggested convention. You are free to modify the structure and naming conventions as you see fit.
+---
 
-### Generate '.env' files
+## 7. Participant Roles
 
-By default the template instance does not contain any env files. Using [`algokit project deploy`](https://github.com/algorandfoundation/algokit-cli/blob/main/docs/features/project/deploy.md) against `localnet` | `testnet` | `mainnet` will use default values for `algod` and `indexer` unless overwritten via `.env` or `.env.{target_network}`. 
+| Code | Role | Permissions |
+|---|---|---|
+| 0 | NONE | No access |
+| 1 | MANUFACTURER | register_product, transfer, recall own products |
+| 2 | DISTRIBUTOR | transfer, receive |
+| 3 | WAREHOUSE | transfer, receive |
+| 4 | RETAILER | transfer, receive, update_product_status (SOLD) |
+| 5 | ADMIN | authorize/revoke participants, recall any product |
 
-To generate a new `.env` or `.env.{target_network}` file, run `algokit generate env-file`
+---
 
-### Debugging Smart Contracts
+## 8. Smart Contract Methods
 
-This project is optimized to work with AlgoKit AVM Debugger extension. To activate it:
-Refer to the commented header in the `__main__.py` file in the `smart_contracts` folder.
+### Admin Methods
+```python
+create_application()                    # Deploy + set admin
+authorize_participant(account, role)    # Grant supply-chain role
+revoke_participant(account)             # Remove role
+recall_product(product_id)             # Force recall (admin or manufacturer)
+```
 
-If you have opted in to include VSCode launch configurations in your project, you can also use the `Debug TEAL via AlgoKit AVM Debugger` launch configuration to interactively select an available trace file and launch the debug session for your smart contract.
+### Manufacturer Methods
+```python
+register_product(product_id, batch_id, metadata_hash)  # Create product record
+```
 
-For information on using and setting up the `AlgoKit AVM Debugger` VSCode extension refer [here](https://github.com/algorandfoundation/algokit-avm-vscode-debugger). To install the extension from the VSCode Marketplace, use the following link: [AlgoKit AVM Debugger extension](https://marketplace.visualstudio.com/items?itemName=algorandfoundation.algokit-avm-vscode-debugger).
+### Authorized Participant Methods
+```python
+transfer_product(product_id, receiver)  # Initiate custody transfer
+receive_product(product_id)             # Confirm receipt
+update_product_status(product_id, new_status)  # Mark SOLD, LOST, etc.
+```
 
-# Tools
+### Anyone
+```python
+report_counterfeit(product_id, report_hash)  # Report suspicious product
+```
 
-This project makes use of Algorand Python to build Algorand smart contracts. The following tools are in use:
+### Read-only Verification
+```python
+verify_product(product_id)       → ProductRecord  # Full record lookup
+get_product_status(product_id)   → uint8          # Current status
+get_participant_role(account)    → uint8          # Role lookup
+get_history_count(product_id)    → uint64         # Number of events
+get_history_event(product_id, i) → HistoryEvent  # Individual event
+```
 
-- [Algorand](https://www.algorand.com/) - Layer 1 Blockchain; [Developer portal](https://dev.algorand.co/), [Why Algorand?](https://dev.algorand.co/getting-started/why-algorand/)
-- [AlgoKit](https://github.com/algorandfoundation/algokit-cli) - One-stop shop tool for developers building on the Algorand network; [docs](https://github.com/algorandfoundation/algokit-cli/blob/main/docs/algokit.md), [intro tutorial](https://github.com/algorandfoundation/algokit-cli/blob/main/docs/tutorials/intro.md)
-- [Algorand Python](https://github.com/algorandfoundation/puya) - A semantically and syntactically compatible, typed Python language that works with standard Python tooling and allows you to express smart contracts (apps) and smart signatures (logic signatures) for deployment on the Algorand Virtual Machine (AVM); [docs](https://github.com/algorandfoundation/puya), [examples](https://github.com/algorandfoundation/puya/tree/main/examples)
-- [AlgoKit Utils](https://github.com/algorandfoundation/algokit-utils-py) - A set of core Algorand utilities that make it easier to build solutions on Algorand.
-- [Poetry](https://python-poetry.org/): Python packaging and dependency management.
-It has also been configured to have a productive dev experience out of the box in [VS Code](https://code.visualstudio.com/), see the [.vscode](./.vscode) folder.
+---
 
+## 9. Data Model
+
+### ProductRecord (stored in Box Map)
+```python
+product_id          : String   # "PROD-100001"
+manufacturer        : Address  # Original registrant
+current_holder      : Address  # Current custody holder
+pending_recipient   : Address  # Awaiting receipt confirmation
+batch_id            : String   # "BATCH-2026-001"
+metadata_hash       : String   # sha256 of off-chain documents
+creation_timestamp  : UInt64   # Unix timestamp at registration
+last_update_timestamp: UInt64  # Last modification time
+current_status      : UInt8    # Status code (0–9)
+product_exists      : Bool     # Existence flag
+recalled            : Bool     # Recall flag
+counterfeit_reported: Bool     # Counterfeit flag
+```
+
+### HistoryEvent (stored in Box Map, keyed by product_id+index)
+```python
+product_id      : String   # Product identifier
+previous_holder : Address  # From
+new_holder      : Address  # To
+timestamp       : UInt64   # Unix timestamp
+event_type      : String   # "PRODUCT_REGISTERED", "TRANSFER_INITIATED", etc.
+status          : UInt8    # Status at time of event
+```
+
+---
+
+## 10. On-Chain vs Off-Chain Architecture
+
+```
+ON-CHAIN (Algorand boxes)           OFF-CHAIN (IPFS / your storage)
+─────────────────────────────       ─────────────────────────────────
+product_id                          Product images
+manufacturer address                Large descriptions
+current holder                      PDF certificates
+batch_id                            Invoices
+metadata_hash (sha256)  ←────────── Manufacturing documents
+creation/update timestamps          Shipping labels
+product status                      Customer personal data
+recall / counterfeit flags
+supply-chain event log
+```
+
+### Document Integrity Verification
+```
+certificate.pdf  →  sha256("...") = "abcd1234..."
+                                         ↓
+                             Stored on Algorand blockchain
+                                         ↓
+Later: sha256(downloaded_file) == blockchain_hash?
+   YES → Document unchanged ✅
+   NO  → Document tampered ❌
+```
+
+---
+
+## 11. Security Rules
+
+| Rule | Enforcement |
+|---|---|
+| Only manufacturer registers products | `assert role == ROLE_MANUFACTURER` |
+| No duplicate product IDs | `assert product_id not in self.products` |
+| Only current holder transfers | `assert Txn.sender == record.current_holder` |
+| Transfer only to authorized receivers | `assert receiver_role != ROLE_NONE` |
+| No transfer of recalled products | `assert not record.recalled` |
+| No transfer of sold products | `assert status != STATUS_SOLD` |
+| No transfer of counterfeit-reported | `assert status != STATUS_COUNTERFEIT_REPORTED` |
+| Only admin/manufacturer recalls | `assert sender == admin or sender == manufacturer` |
+| Only admin authorizes participants | `assert Txn.sender == self.admin` |
+| Recipient must accept transfer | Pending recipient pattern |
+| Invalid status transitions rejected | Whitelist of valid status targets |
+
+---
+
+## 12. QR Code Verification Flow
+
+```
+Customer scans QR code
+       ↓
+Product ID extracted
+       ↓
+Query Algorand: verify_product(product_id)
+       ↓
+   ┌──────────────────────────────────┐
+   │ product_exists == False?         │ → ⬜ NOT FOUND
+   │ recalled == True?                │ → 🔴 RECALLED  
+   │ counterfeit_reported == True?    │ → 🟡 SUSPICIOUS
+   │ All clear                        │ → 🟢 AUTHENTIC
+   └──────────────────────────────────┘
+```
+
+---
+
+## 13. LocalNet Setup & Running Tests
+
+### Prerequisites
+```bash
+# Install Docker Desktop
+# Install AlgoKit
+pip install algokit
+
+# Start LocalNet (requires Docker)
+algokit localnet start
+```
+
+### Build Smart Contracts
+```bash
+cd projects/algomahesh
+poetry install
+poetry run python -m smart_contracts build
+```
+
+Generated artifacts:
+- `smart_contracts/artifacts/blocktrace/BlockTrace.arc56.json` — ARC-56 app spec
+- `smart_contracts/artifacts/blocktrace/BlockTrace.approval.teal` — compiled TEAL
+- `smart_contracts/artifacts/blocktrace/block_trace_client.py` — typed Python client
+
+### Run Tests (requires LocalNet)
+```bash
+# Start LocalNet
+algokit localnet start
+
+# Run full test suite
+poetry run pytest tests/test_blocktrace_contract.py -v
+
+# Run specific test class
+poetry run pytest tests/test_blocktrace_contract.py::TestProductTransfer -v
+```
+
+### Deploy to LocalNet
+```bash
+algokit localnet start
+poetry run python -m smart_contracts deploy
+```
+
+### Deploy to TestNet
+```bash
+# Set your mnemonic
+export DEPLOYER_MNEMONIC="word1 word2 ... word25"
+algokit deploy testnet
+```
+
+---
+
+## 14. Test Coverage
+
+| Category | Tests |
+|---|---|
+| Admin authorization | 5 tests |
+| Product registration | 5 tests |
+| Product transfer lifecycle | 6 tests |
+| Product verification | 5 tests |
+| Product recall | 2 tests |
+| Counterfeit reporting | 1 test |
+| Security rejections | 12 tests |
+| **Total** | **36 tests** |
+
+---
+
+## 15. Project Structure
+
+```
+Smart-Contracts/projects/algomahesh/
+│
+├── smart_contracts/
+│   ├── __init__.py
+│   ├── __main__.py                  # Build/deploy orchestrator
+│   │
+│   ├── blocktrace/
+│   │   ├── contract.py             # BlockTrace ARC-4 smart contract
+│   │   └── deploy_config.py        # Deployment + lifecycle validation
+│   │
+│   ├── hello_world/                # Original example (preserved)
+│   │   ├── contract.py
+│   │   └── deploy_config.py
+│   │
+│   └── artifacts/
+│       ├── blocktrace/
+│       │   ├── BlockTrace.arc56.json        # ARC-56 app spec
+│       │   ├── BlockTrace.approval.teal     # Compiled TEAL
+│       │   ├── BlockTrace.clear.teal
+│       │   └── block_trace_client.py        # Auto-generated typed client
+│       └── hello_world/
+│           └── ...
+│
+├── tests/
+│   ├── __init__.py
+│   └── test_blocktrace_contract.py  # 36-test integration suite
+│
+├── pyproject.toml                   # Poetry deps + pytest config
+├── .algokit.toml                    # AlgoKit project config
+└── README.md                        # This file
+```
+
+---
+
+## 16. Example Workflow
+
+```python
+# 1. Admin authorizes manufacturer
+app_client.send.authorize_participant(
+    args=AuthorizeParticipantArgs(account=manufacturer.address, role=1),
+    params=CommonAppCallParams(sender=admin.address, signer=admin.signer),
+)
+
+# 2. Manufacturer registers product
+app_client.send.register_product(
+    args=RegisterProductArgs(
+        product_id="PROD-100001",
+        batch_id="BATCH-2026-001",
+        metadata_hash="sha256:abcd1234...",
+    ),
+    params=CommonAppCallParams(sender=manufacturer.address, signer=manufacturer.signer),
+)
+
+# 3. Transfer: Manufacturer → Distributor
+app_client.send.transfer_product(
+    args=TransferProductArgs(product_id="PROD-100001", receiver=distributor.address),
+    params=CommonAppCallParams(sender=manufacturer.address, signer=manufacturer.signer),
+)
+
+# 4. Distributor receives
+app_client.send.receive_product(
+    args=ReceiveProductArgs(product_id="PROD-100001"),
+    params=CommonAppCallParams(sender=distributor.address, signer=distributor.signer),
+)
+
+# 5. Customer verifies via QR scan
+result = app_client.send.verify_product(
+    args=VerifyProductArgs(product_id="PROD-100001"),
+)
+# result.abi_return.recalled == False   → GREEN: AUTHENTIC ✅
+```
+
+---
+
+## 17. Future Improvements
+
+- **NFT-backed product identity** — mint ASA per product for wallet ownership
+- **ZK proofs** — private supply-chain verification without exposing holders
+- **Oracle integration** — IoT sensor data (temperature, location) on-chain
+- **Multi-signature recalls** — require M-of-N admin consensus for recall
+- **IPFS integration** — store document hashes + IPFS CIDs on-chain
+- **Frontend DApp** — React + AlgoKit Utils browser QR scanner
+- **Batch operations** — register/transfer multiple products atomically
+- **Expiry / shelf-life** — automatic status update based on timestamp
